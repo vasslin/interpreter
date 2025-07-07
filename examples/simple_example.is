@@ -1,0 +1,21 @@
+    a = 5
+    c = 1
+    d = 9
+    if (a) then
+        b = a
+        c = b + 2
+        if (b) then 
+            e = d
+        end if
+        k = c
+        d = 0
+        a = 1000
+    else if (c) then
+        b = 9
+    else 
+        b = 10
+    end if
+    f = c
+    t = d
+    l  = a
+    println([a, c, d, f, t, l])
