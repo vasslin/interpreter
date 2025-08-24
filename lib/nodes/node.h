@@ -25,12 +25,13 @@ struct Scope {
 
 class Node {
    public:
+
     virtual std::any visit() = 0;
 };
 
 // Nodes for arifmetic operations (have derived nodes)
-
-class FactorNode : public Node {  // derived: NumNode, VariableNode, BinOpNode (with parenthesis), FunctionNode
+class FactorNode
+    : public Node {  // derived: NumNode, VariableNode, BinOpNode (with parenthesis), FunctionDefinitionNode
    public:
     FactorNode() {};
 };
@@ -39,6 +40,12 @@ struct Nil {};
 
 class ScopeNode : public Node {
    public:
+    friend class FunctionDefinitionNode;
+    ScopeNode() = default;
+    ScopeNode(const ScopeNode& other) : nodes_(other.nodes_) {}
     virtual Scope& getScope() = 0;
     virtual std::string getName() = 0;
+
+   protected:
+    std::vector<std::shared_ptr<Node>> nodes_ = {};
 };

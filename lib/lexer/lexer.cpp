@@ -15,21 +15,18 @@ Token Lexer::getNextToken() {
             skipComments();
             continue;
         }
-        if (isNewLine()) {
-            advance(std::string{"\n"}.size());
-            return Token{TokenType::NEWLINE, '\n'};
-        }
         if (str[curr_ind] == '\n') {
             advance();
-            return Token{TokenType::NEWLINE, '\n'};
+            ++curr_line_;
+            line_index_ = 0;
+            continue;
+            // return Token{TokenType::NEWLINE, '\n'};
         }
 
         if (str[curr_ind] == ' ') {
             skipWhitespaces();
             continue;
         }
-
-        // find tokens with keywords
 
         if (str[curr_ind] == '\"') {
             return getString();
@@ -60,6 +57,16 @@ Token Lexer::getNextToken() {
                 advance(std::string{"not"}.size());
             }
             return Token{TokenType::NOT, '!'};
+        }
+
+        if (isAnd()) {
+            advance(std::string{"and"}.size());
+            return Token{TokenType::AND, NULL};
+        }
+
+        if (isOr()) {
+            advance(std::string{"or"}.size());
+            return Token{TokenType::OR, NULL};
         }
 
         if (nextStringIs("while")) {
@@ -215,13 +222,14 @@ Token Lexer::getNextToken() {
 bool Lexer::endOfFile() { return curr_ind >= str.size(); }
 
 void Lexer::advance(size_t n) {
-    for (int max_ind = std::min(str.size(), curr_ind + n); curr_ind < max_ind; ++curr_ind) {
+    for (int max_ind = std::min(str.size(), curr_ind + n); curr_ind < max_ind; ++curr_ind, ++line_index_) {
     }
 }
 
 void Lexer::skipWhitespaces() {
     while (curr_ind < str.size() && str[curr_ind] == ' ') {
         ++curr_ind;
+        ++line_index_;
     }
 }
 void Lexer::skipComments() {
@@ -229,6 +237,7 @@ void Lexer::skipComments() {
         curr_ind += 2;
         while (curr_ind < str.size() && str[curr_ind] != '\n' && !(isNewLine())) {
             ++curr_ind;
+            ++line_index_;
         }
     }
 }
@@ -345,3 +354,25 @@ char Lexer::peek() {
 }
 
 size_t Lexer::getPos() const { return curr_ind; }
+
+size_t Lexer::getLineNum() const { return curr_line_; }
+
+size_t Lexer::getSymbLineNum() const { return line_index_; }
+
+std::string Lexer::getCurrString() const {
+    size_t end_line_ind = curr_ind;
+    size_t start_line_ind = curr_ind;
+    if (curr_ind == str.size() || str[curr_ind] == '\n' && curr_ind) {
+        start_line_ind = curr_ind - 1;
+        while (start_line_ind && str[start_line_ind] != '\n') {
+            --start_line_ind;
+        }
+    }
+    while (start_line_ind && str[start_line_ind] != '\n') {
+        --start_line_ind;
+    }
+    while (end_line_ind < str.size() && str[end_line_ind] != '\n') {
+        ++end_line_ind;
+    }
+    return str.substr(start_line_ind, end_line_ind - start_line_ind);
+}

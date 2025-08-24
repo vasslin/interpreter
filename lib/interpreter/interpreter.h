@@ -4,4 +4,4 @@
 #include "./lexer/lexer.h"
 #include "./parser/parser.h"
 
-bool interpret(std::istream& input, std::ostream& output);
+bool interpret(std::istream& input);

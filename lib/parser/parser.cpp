@@ -1,11 +1,5 @@
 #include "parser.h"
 
-void Parser::skipNewLine() {
-    while (curr_token_.type == TokenType::NEWLINE) {
-        eat(TokenType::NEWLINE);
-    }
-}
-
 bool Parser::parse(AST& ast) {
     while (curr_token_.type != TokenType::EOF_T) {
         try {
@@ -26,10 +20,10 @@ bool isArifmAssignment(TokenType type) {
 
 Scope& Parser::getCurrScope() {
     if (scope_.empty()) {
-        throw std::runtime_error("Empty scope error.");
+        error("Empty scope error.\n" + errorLineText());
     }
     if (scope_.back() == nullptr) {
-        throw std::runtime_error("Error in current scope definition");
+        error("Error in current scope definition.\n" + errorLineText());
     }
     return *(scope_.back());
 }
@@ -43,26 +37,24 @@ void Parser::addScope(Scope& scope, bool need_prev) {
 
 std::shared_ptr<IfNode> Parser::getIfNode() {
     std::shared_ptr<IfNode> node;
-    skipNewLine();
+
     if (curr_token_.type == TokenType::IF) {
         eat(TokenType::IF);
         node = std::make_shared<IfNode>(expr());  // if CONDITION then
-        skipNewLine();
+
         eat(TokenType::THEN_T);
     } else {
         node = std::make_shared<IfNode>(IfNode{});  // else (== else if true)
     }
-    skipNewLine();
+
     addScope(node->getScope());
-    skipNewLine();
+
     while (curr_token_.type != TokenType::ELSE && curr_token_.type != TokenType::END &&
            curr_token_.type != TokenType::ERR && curr_token_.type != TokenType::EOF_T) {
         node->setNode(getNextNode());
-        skipNewLine();
     }
 
     popScope();
-    // stack_.pop_back();
     return node;
 }
 
@@ -74,7 +66,7 @@ std::shared_ptr<Node> Parser::simpleFactor() {
         return std::make_shared<AssignmentNode>(fact, expr_node);
     } else if (isArifmAssignment(curr_token_.type)) {
         std::string op = "";
-        skipNewLine();
+
         switch (curr_token_.type) {
             case TokenType::ADD_ASSIGNMENT:
                 op += '+';
@@ -129,11 +121,11 @@ std::shared_ptr<Node> Parser::getNextNode() {
             eat(TokenType::ELSE);
             if_container_node->addIfNode(getIfNode());
         }
-        skipNewLine();
+
         eat(TokenType::END);
-        skipNewLine();
+
         eat(TokenType::IF);
-        skipNewLine();
+
         return if_container_node;
     }
 
@@ -145,21 +137,19 @@ std::shared_ptr<Node> Parser::getNextNode() {
         eat(TokenType::WHILE);
         auto node = std::make_shared<WhileNode>(WhileNode{});
         node->setCondition(expr());
-        eat(TokenType::NEWLINE);
+        // eat(TokenType::NEWLINE);
 
         addScope(node->getScope());
 
         while (curr_token_.type != TokenType::END && curr_token_.type != TokenType::EOF_T &&
                curr_token_.type != TokenType::ERR) {
-            skipNewLine();
             node->setNode(getNextNode());
-            skipNewLine();
         }
-        skipNewLine();
+
         eat(TokenType::END);
-        skipNewLine();
+
         eat(TokenType::WHILE);
-        skipNewLine();
+
         popScope();
         return node;
     }
@@ -178,18 +168,14 @@ std::shared_ptr<Node> Parser::getNextNode() {
         eat(TokenType::IN);
         node->setSequence(factor());
 
-        eat(TokenType::NEWLINE);
-        skipNewLine();
+        // eat(TokenType::NEWLINE);
+
         while (curr_token_.type != TokenType::END && curr_token_.type != TokenType::EOF_T &&
                curr_token_.type != TokenType::ERR) {
             node->setNode(getNextNode());
-            skipNewLine();
         }
-        skipNewLine();
         eat(TokenType::END);
-        skipNewLine();
         eat(TokenType::FOR);
-        skipNewLine();
         popScope();
         return node;
     }
@@ -206,11 +192,6 @@ std::shared_ptr<Node> Parser::getNextNode() {
         return std::make_shared<ContinueNode>(ContinueNode{});
     }
 
-    if (curr_token_.type == TokenType::NEWLINE) {
-        skipNewLine();
-        return getNextNode();
-    }
-
     if (curr_token_.type == TokenType::EOF_T) {
         return std::make_shared<EmptyNode>(EmptyNode{});
     }
@@ -218,9 +199,9 @@ std::shared_ptr<Node> Parser::getNextNode() {
     return simpleFactor();
 }
 
-std::shared_ptr<PseidoFuncNode> Parser::getPseudoFunc(std::shared_ptr<FactorNode> name) {
+std::shared_ptr<FuncVarNode> Parser::getPseudoFunc(std::shared_ptr<FactorNode> name) {
     eat(TokenType::LPAREN);
-    auto func = std::make_shared<PseidoFuncNode>(name);
+    auto func = std::make_shared<FuncVarNode>(name);
     if (curr_token_.type != TokenType::RPAREN) {
         func->setArgument(expr());
         while (curr_token_.type != TokenType::RPAREN && curr_token_.type != TokenType::EOF_T &&
@@ -229,8 +210,6 @@ std::shared_ptr<PseidoFuncNode> Parser::getPseudoFunc(std::shared_ptr<FactorNode
             func->setArgument(expr());
         }
     }
-    // FOR TESTING
-    func->setOutputStream(stream_);
     eat(TokenType::RPAREN);
     return func;
 }
@@ -251,11 +230,8 @@ void Parser::fillSliceNode(std::shared_ptr<SliceNode>& node) {
 }
 
 std::shared_ptr<FactorNode> Parser::prim() {
-    // prim := Num | Bool | String | Variable | (Expression) | List | Function(...) | Function
+    // prim := Num | Bool | String | Variable | (Expression) | List | Function(...) | Function |Nil
 
-    skipNewLine();
-
-    // add Unary operators (+, -, !)
     if (curr_token_.type == TokenType::NOT) {
         bool is_negative = true;
         eat(TokenType::NOT);
@@ -311,12 +287,10 @@ std::shared_ptr<FactorNode> Parser::prim() {
     else if (curr_token_.type == TokenType::VAR) {
         std::string name = std::any_cast<std::string>(curr_token_.value);
         eat(TokenType::VAR);
-        // check if var is function
-
         fact = std::make_shared<VariableNode>(name, getCurrScope());
-
         return fact;
     }
+
     // (Expression)
     else if (curr_token_.type == TokenType::LPAREN) {
         eat(TokenType::LPAREN);
@@ -329,20 +303,18 @@ std::shared_ptr<FactorNode> Parser::prim() {
     // list := [ | (factor (, factor)*) ]
     else if (curr_token_.type == TokenType::LBRACKET) {
         eat(TokenType::LBRACKET);
-        skipNewLine();
+
         auto node = std::make_shared<ListNode>(ListNode{});
         // not empty list
-        skipNewLine();
+
         if (curr_token_.type != TokenType::RBRACKET) {
             node->push_back(expr());
-            skipNewLine();
+
             while (curr_token_.type == TokenType::COMMA) {
                 eat(TokenType::COMMA);
                 node->push_back(factor());
-                skipNewLine();
             }
         }
-        skipNewLine();
 
         eat(TokenType::RBRACKET);
         fact = node;
@@ -358,7 +330,7 @@ std::shared_ptr<FactorNode> Parser::prim() {
         eat(TokenType::FUNCTION);
         // define args names
         eat(TokenType::LPAREN);
-        auto func = std::make_shared<FunctionNode>();
+        auto func = std::make_shared<FunctionDefinitionNode>();
         if (curr_token_.type != TokenType::RPAREN) {
             auto token_copy = curr_token_;
             eat(TokenType::VAR);
@@ -377,36 +349,33 @@ std::shared_ptr<FactorNode> Parser::prim() {
 
         // define function body
         while (true) {
-            skipNewLine();
-            if (curr_token_.type == TokenType::RETURN || curr_token_.type == TokenType::EOF_T ||
-                curr_token_.type == TokenType::ERR || curr_token_.type == TokenType::END) {
+            if (curr_token_.type == TokenType::EOF_T || curr_token_.type == TokenType::ERR ||
+                curr_token_.type == TokenType::END) {
                 break;
             }
             func->buildNode(getNextNode());
         }
-
-        // define return statement
-        skipNewLine();
-        if (curr_token_.type == TokenType::RETURN) {
-            eat(TokenType::RETURN);
-            skipNewLine();
-            func->buildReturnNode(expr());
-        } else {
-            func->buildReturnNode(std::make_shared<NilNode>(NilNode{}));
-        }
         popScope();
         need_global = true;
-        skipNewLine();
+
         eat(TokenType::END);
-        skipNewLine();
+
         eat(TokenType::FUNCTION);
-        skipNewLine();
+
         return func;
     }
 
-    error("Unexpected symbol on " + std::to_string(lexer.getPos() - 1) + " position " +
-          std::to_string(static_cast<size_t>(curr_token_.type)));
-    return nullptr;  // выше будет кинуто исключение, до этой строчки не дойдет
+    if (curr_token_.type == TokenType::RETURN) {
+        eat(TokenType::RETURN);
+        return std::make_shared<ReturnNode>(ReturnNode(expr()));
+    }
+
+    if (curr_token_.type == TokenType::NIL) {
+        eat(TokenType::NIL);
+        return std::make_shared<NilNode>(NilNode());
+    }
+
+    error("Unexpected symbol. " + errorLineText());
 }
 
 std::shared_ptr<FactorNode> Parser::factor() {
@@ -463,7 +432,6 @@ bool isExprOperation(Token& token) {
 }
 
 std::shared_ptr<BinOpNode> Parser::expr() {
-    // c
     auto node = std::make_shared<BinOpNode>(term());
     while (true) {
         std::string op = "";
@@ -481,11 +449,15 @@ std::shared_ptr<BinOpNode> Parser::expr() {
 
 void Parser::error(const std::string& message) { throw std::runtime_error(message); }
 
+std::string Parser::errorLineText() const {
+    return "On line " + std::to_string(lexer.getLineNum()) + ", position " + std::to_string(lexer.getSymbLineNum()) +
+           ": " + lexer.getCurrString();
+}
+
 void Parser::eat(TokenType token_type) {
     if (curr_token_.type == token_type) {
         curr_token_ = lexer.getNextToken();
     } else {
-        error("Unexpected symbol on " + std::to_string(lexer.getPos() - 1) + " position " +
-              std::to_string(static_cast<int>(curr_token_.type)) + " " + std::to_string(static_cast<int>(token_type)));
+        error("Unexpected symbol. " + errorLineText());
     }
 }

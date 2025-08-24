@@ -51,7 +51,6 @@ void ForNode::executeList(std::any seq) {
     }
     auto& list_data = *(std::any_cast<std::shared_ptr<ListNode::data_type>>(seq));
     for (auto& node : list_data) {
-        // var_->assign(node->visit());
         scope_.scope[var_->name()] = std::make_shared<AnyNode>(node->visit());
         executeNodes();
         need_continue = false;
@@ -64,7 +63,6 @@ void ForNode::executeString(std::any seq) {
     }
     auto list_data = std::any_cast<std::string>(seq);
     for (auto& l : list_data) {
-        // var_->assign(std::string{l});
         scope_.scope[var_->name()] = std::make_shared<AnyNode>(std::string{l});
         executeNodes();
         need_continue = false;

@@ -17,16 +17,15 @@ std::vector<std::string> splitStrings(const std::string& s) {
 }
 
 int main(int argc, char** argv) {
+    // std::cout << "Write the name of the script file." << std::endl;
     // std::string file_name;
     // std::cin >> file_name;
     std::string file_name = "fibonacci.is";
-    std::ifstream in(file_name);
+    std::ifstream in;
+    in.open(file_name);
     if (!in.is_open()) {
         std::cout << "Impossible to open file." << std::endl;
     } else {
-        std::ostringstream output;
-        interpret(in, output);
-        std::cout << output.str();
+        interpret(in);
     }
 }
-

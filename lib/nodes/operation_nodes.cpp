@@ -88,7 +88,6 @@ std::any equalTypesBinOp(std::any lhs, std::any rhs, std::string op) {
             return std::pow(num1, num2);
         }
         if (op[0] == '/' || op[0] == '%') {
-            // std::cout << "AAA" << std::endl;
             if (num2 == 0) {
                 throw std::runtime_error("Dividing by zero will collapse the Universe : " + std::to_string(num1) +
                                          std::string{op} + std::to_string(num2));
@@ -122,8 +121,8 @@ std::any equalTypesBinOp(std::any lhs, std::any rhs, std::string op) {
     throw std::runtime_error("Undefined operation " + std::string{op} + " between two same objects");
 }
 
-template <typename First, typename Second>
 // checks if variables have different types First and Second and swap them if first.type == Second
+template <typename First, typename Second>
 bool areTwoTypes(std::any& first, std::any& second) {
     if (second.type().name() == typeid(First).name() && (first.type().name() == typeid(Second).name())) {
         std::swap(first, second);

@@ -9,11 +9,10 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
-
 #include "node.h"
-
 
 class EmptyNode : public Node {
    public:
@@ -28,8 +27,6 @@ class AnyNode : public Node {
    private:
     std::any value_;
 };
-
-
 
 class NilNode : public FactorNode {
    public:
@@ -47,12 +44,11 @@ class NumNode : public FactorNode {
     double num_;
 };
 
-
 class StringNode : public FactorNode {
    public:
     StringNode(const std::string& str) : str_(str) {};
     StringNode(std::string&& str) : str_(std::move(str)) {};
-    StringNode operator=(std::string&& str) ;
+    StringNode operator=(std::string&& str);
     std::any visit();
 
    private:

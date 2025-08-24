@@ -11,7 +11,6 @@ T convertAny(std::any value, const std::string& name) {
 }
 
 // zero argument functions
-
 std::any read() {
     std::string str;
     if (!std::getline(std::cin, str)) Nil{};
@@ -20,7 +19,7 @@ std::any read() {
 
 std::any stacktrace() { return std::string{"stacktrace"}; }
 
-std::unordered_map<std::string, std::function<std::any()>> Functions::zero_arg_functions =
+std::unordered_map<std::string, std::function<std::any()>> zero_arg_functions =
     std::unordered_map<std::string, std::function<std::any()>>{{"read", read}, {"stacktrace", stacktrace}};
 
 // one argument functions
@@ -62,9 +61,7 @@ std::any len(std::shared_ptr<Node> node) {
     if (val.type().name() == typeid(std::string).name()) {
         return static_cast<double>((convertAny<std::string>(val, std::string{"len"})).size());
     }
-    // if (val.type().name() == typeid(ListNode::data_type).name()) {
     return static_cast<double>((convertAny<std::shared_ptr<ListNode::data_type>>(val, std::string{"len"}))->size());
-    // }
 }
 std::any lower(std::shared_ptr<Node> node) {
     auto str = convertAny<std::string>(node->visit(), std::string{"abs"});
@@ -105,22 +102,13 @@ void printList(std::shared_ptr<ListNode::data_type> data, std::ostream* stream =
     }
     (*stream) << "[";
     for (size_t i = 0; i < data->size() - 1; ++i) {
-        // FOR TESTING
-        if (stream != &std::cout) {
-            print_test((*data)[i], stream);
+        print((*data)[i]);
 
-        } else {
-            print((*data)[i]);
-        }
         (*stream) << ", ";
     }
 
-    if (stream != &std::cout) {
-        print_test(data->back(), stream);
+    print(data->back());
 
-    } else {
-        print(data->back());
-    }
     (*stream) << "]";
 }
 
@@ -133,8 +121,10 @@ std::any print(std::shared_ptr<Node> node) {
         printString(convertAny<std::string>(data, "print(x)"));
     } else if (data.type().name() == typeid(std::shared_ptr<ListNode::data_type>).name()) {
         printList(convertAny<std::shared_ptr<ListNode::data_type>>(data, "print(x)"));
+    } else if ((data).type().name() == typeid(Nil{}).name()) {
+        std::cout << "nil";
     } else {
-        // std::cout << (data).type().name();
+        std::cout << (data).type().name();
     }
     return Nil{};
 }
@@ -183,8 +173,6 @@ std::any sort(std::shared_ptr<Node> node) {
                   [](std::shared_ptr<FactorNode> n1, std::shared_ptr<FactorNode> n2) {
                       auto str1 = std::any_cast<std::string>(n1->visit());
                       auto str2 = std::any_cast<std::string>(n2->visit());
-                      //!
-                      //   str1.size() < str2.size();
                       std::less<std::string> comp;
                       return comp(str1, str2);
                   });
@@ -195,52 +183,36 @@ std::any sort(std::shared_ptr<Node> node) {
     return Nil{};
 }
 
-std::unordered_map<std::string, std::function<std::any(std::shared_ptr<Node>)>> Functions::one_arg_functions =
-    std::unordered_map<std::string, std::function<std::any(std::shared_ptr<Node>)>>{
-        {"abs", abs},
-        {"ceil", ceil},
-        {"floor", floor},
-        {"round", round},
-        {"sqrt", sqrt},
-        {"rnd", rnd},
-        {"parse_num", parse_num},
-        {"to_string", to_string},
-        {"print", print},
-        {"println", println},
-        {"pop", pop},
-        {"len", len},
-        {"sort", sort},
+std::any range(std::shared_ptr<Node> n_node) {
+    auto n = convertAny<double>(n_node->visit(), std::string{"range(x, y)"});
+
+    ListNode::data_type data{};
+
+    for (auto i = 0; i < n; ++i) {
+        data.push_back(std::make_shared<NumNode>(i));
+    }
+    return std::make_shared<ListNode::data_type>(data);
+}
+
+std::unordered_map<std::string, std::function<std::any(std::shared_ptr<Node>)>> one_arg_functions =
+    std::unordered_map<std::string, std::function<std::any(std::shared_ptr<Node>)>>{{"abs", abs},
+                                                                                    {"ceil", ceil},
+                                                                                    {"floor", floor},
+                                                                                    {"round", round},
+                                                                                    {"sqrt", sqrt},
+                                                                                    {"rnd", rnd},
+                                                                                    {"parse_num", parse_num},
+                                                                                    {"to_string", to_string},
+                                                                                    {"print", print},
+                                                                                    {"println", println},
+                                                                                    {"pop", pop},
+                                                                                    {"len", len},
+                                                                                    {"sort", sort},
+                                                                                    {"range", range}
 
     };
 
 // two args functions
-
-// FOR TESTING
-std::any print_test(std::shared_ptr<Node> node, std::ostream* stream) {
-    auto data = node->visit();
-
-    if (data.type().name() == typeid(double).name()) {
-        printNum(convertAny<double>(data, "print(x)"), stream);
-    } else if (data.type().name() == typeid(std::string).name()) {
-        printString(convertAny<std::string>(data, "print(x)"), stream);
-    } else if (data.type().name() == typeid(std::shared_ptr<ListNode::data_type>).name()) {
-        printList(convertAny<std::shared_ptr<ListNode::data_type>>(data, "print(x)"), stream);
-    } else {
-        if (!stream) {
-            return Nil{};
-        }
-        (*stream) << (data).type().name();
-    }
-    return Nil{};
-}
-
-std::any println_test(std::shared_ptr<Node> node, std::ostream* stream) {
-    print_test(node, stream);
-    (*stream) << "\n";
-    return Nil{};
-}
-
-// string functions
 
 std::any split(std::shared_ptr<Node> s_node, std::shared_ptr<Node> delim_node) {
     auto str = convertAny<std::string>(s_node->visit(), std::string{"split(s, delim)"});
@@ -327,7 +299,7 @@ std::any range2(std::shared_ptr<Node> x_node, std::shared_ptr<Node> y_node) {
 }
 
 std::unordered_map<std::string, std::function<std::any(std::shared_ptr<Node>, std::shared_ptr<Node>)>>
-    Functions::two_args_functions =
+    two_args_functions =
         std::unordered_map<std::string, std::function<std::any(std::shared_ptr<Node>, std::shared_ptr<Node>)>>{
             {"join", join}, {"split", split}, {"push", push}, {"remove", remove}, {"range", range2}};
 
@@ -378,7 +350,7 @@ std::any insert(std::shared_ptr<Node> list_node, std::shared_ptr<Node> index_nod
 
 std::unordered_map<std::string,
                    std::function<std::any(std::shared_ptr<Node>, std::shared_ptr<Node>, std::shared_ptr<Node>)>>
-    Functions::three_args_functions = std::unordered_map<
+    three_args_functions = std::unordered_map<
         std::string, std::function<std::any(std::shared_ptr<Node>, std::shared_ptr<Node>, std::shared_ptr<Node>)>>{
         {"replace", replace}, {"range", range3}, {"insert", insert}
 

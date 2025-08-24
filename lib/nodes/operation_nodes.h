@@ -30,7 +30,6 @@ class BinOpNode : public FactorNode {
     std::string op_;  // +, -
 };
 
-
 class UnaryOpNode : public FactorNode {
    public:
     UnaryOpNode(char op, const std::shared_ptr<FactorNode>& node) : op_(op), node_(node) {}
@@ -42,7 +41,6 @@ class UnaryOpNode : public FactorNode {
     char op_;
     std::shared_ptr<FactorNode> node_;
 };
-
 
 class SliceNode : public FactorNode {
    public:
@@ -64,4 +62,3 @@ class SliceNode : public FactorNode {
 
     std::shared_ptr<FactorNode> node_;
 };
-

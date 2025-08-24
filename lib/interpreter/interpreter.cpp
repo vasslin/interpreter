@@ -10,13 +10,11 @@ std::string getString(std::istream& input) {
     return s;
 }
 
-bool interpret(std::istream& input, std::ostream& output) {
+bool interpret(std::istream& input) {
     try {
         auto str = getString(input);
         Lexer lex{str};
-        // std::cout << str[112] << std::endl;
         Parser parser{lex};
-        parser.setOutputStream(&output);
         AST ast{};
         if (parser.parse(ast)) {
             ast.execute();

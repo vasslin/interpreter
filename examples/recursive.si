@@ -1,0 +1,9 @@
+func = function(a, other_func)
+    if (a <= 0) then
+       return 1
+    else
+       return other_func(a - 1, other_func)
+    end if
+end function
+
+println(func(0, other_func))

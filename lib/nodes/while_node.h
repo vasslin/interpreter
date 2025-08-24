@@ -12,11 +12,9 @@
 #include <vector>
 
 #include "break_continue_nodes.h"
+#include "if_node.h"
 #include "primitive_nodes.h"
 #include "variable_node.h"
-#include "if_node.h"
-
-
 
 class WhileNode : public ScopeNode {
    public:
@@ -34,7 +32,6 @@ class WhileNode : public ScopeNode {
     void setContinue(double* val);
 
     std::shared_ptr<FactorNode> condition_;
-    std::vector<std::shared_ptr<Node>> nodes_ = {};
     Scope scope_{};
     const std::string name_ = "while";
 

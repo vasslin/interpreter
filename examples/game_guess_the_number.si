@@ -1,0 +1,26 @@
+// the rules of the game are simple:
+// functin game(num) gets the number num
+// one user writes num to the function
+// the second user must guess the number.
+
+game_for_two = function(num)   
+    res = false
+    while (!res)
+        value = parse_num(read())
+        if value == num then
+            println("You guessed the number!")
+            res = true
+        else 
+            println("This is not " + to_string(value))
+        end if
+    end while
+    return nil
+end function
+
+
+println("Write number")
+num = parse_num(read())
+
+game_for_two(num)
+
+

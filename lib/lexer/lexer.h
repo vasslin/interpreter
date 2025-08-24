@@ -8,10 +8,14 @@
 
 class Lexer {
    public:
-    Lexer(const std::string& s) : str(s), curr_ind(0) {}
-    Lexer(std::string&& s) : str(std::move(s)), curr_ind(0) {}
+    Lexer(const std::string& s) : str(s), curr_ind(0), curr_line_(0) {}
+    Lexer(std::string&& s) : str(std::move(s)), curr_ind(0), curr_line_(0) {}
     Token getNextToken();
     size_t getPos() const;
+    size_t getLineNum() const;
+    size_t getSymbLineNum() const;
+
+    std::string getCurrString() const;
 
    private:
     bool endOfFile();
@@ -36,6 +40,8 @@ class Lexer {
     bool nextStringIs(const std::string& s);
     char peek();
 
+    size_t curr_line_;
+    size_t line_index_;
     size_t curr_ind;
     std::string str;
 };

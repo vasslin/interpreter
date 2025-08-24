@@ -11,13 +11,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include "primitive_nodes.h"
 #include "break_continue_nodes.h"
+#include "primitive_nodes.h"
 
 class IfNode : public ScopeNode {
    public:
     IfNode() : condition_(std::make_shared<NumNode>(NumNode(true))) {}
-    IfNode(std::shared_ptr<FactorNode>&& condition) : condition_(std::move(condition)) {};
+    IfNode(std::shared_ptr<FactorNode> condition) : condition_(condition) {};
 
     bool conditionIsTrue();
     void setNode(std::shared_ptr<Node>&& node);
@@ -32,16 +32,17 @@ class IfNode : public ScopeNode {
    private:
     Scope curr_scope_{};
     std::shared_ptr<FactorNode> condition_;
-    std::vector<std::shared_ptr<Node>> nodes_ = {};
     const std::string name_ = "If";
 };
 
 // класс, хранящий If-ноды (от первого if до последнего end if)
 class IfContainerNode : public Node {
    public:
+   friend class FunctionDefinitionNode;
     IfContainerNode() = default;
     void addIfNode(std::shared_ptr<IfNode>&& node);
     std::any visit() override;
+
 
     void setBreak(double* val);
     void setContinue(double* val);

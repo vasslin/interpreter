@@ -1,11 +1,8 @@
 #include "primitive_nodes.h"
 
-
 std::any EmptyNode::visit() { return Nil{}; }
 
-
 std::any NumNode::visit() { return num_; }
-
 
 std::any StringNode::visit() { return str_; }
 

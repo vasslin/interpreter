@@ -39,7 +39,6 @@ class ForNode : public ScopeNode {
     std::shared_ptr<VariableNode> var_;
     std::shared_ptr<FactorNode> sequence_;
     Scope scope_{};
-    std::vector<std::shared_ptr<Node>> nodes_ = {};
     const std::string name_ = "for";
 
     double need_break = false;

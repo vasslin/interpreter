@@ -1,0 +1,11 @@
+        
+// this is an array of functins
+funcs = [
+    function() return 1 end function,
+    function() return 2 end function,
+    function() return 3 end function
+]
+
+print(funcs[0]())
+print(funcs[1]())
+print(funcs[2]())

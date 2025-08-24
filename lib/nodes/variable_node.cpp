@@ -1,9 +1,9 @@
 #include "variable_node.h"
 
 Scope* VariableNode::getVarScope() {
-    // возвращает ближайший scope, в котором объявлена переменная
+    // returns the nearest scope in which the variable is declared
     auto* tmp = &curr_scope_;
-    while (tmp != nullptr) {
+    while (tmp) {
         if (tmp->scope.find(name_) != tmp->scope.end()) {
             return tmp;
         }
@@ -14,19 +14,17 @@ Scope* VariableNode::getVarScope() {
 
 std::any VariableNode::visit() {
     // search in the nearest scope
+    auto* scope_var = getVarScope();
 
-    // ближайший scope в котором объявлена переменная
-    auto* scope = getVarScope();
-
-    if (scope == nullptr) {  // throws exception if variable is undefined
+    if (!scope_var) {  // throws exception if variable is undefined
         throw std::runtime_error("Undefined variable " + name_);
     }
-    return (scope->scope)[name_]->visit();
+    return (scope_var->scope)[name_]->visit();
 }
 
 void VariableNode::assign(const std::any& value) {  // sets value to variable (builds varibale)
     auto* scope = getVarScope();
-    if (scope == nullptr) {  // первое объявление переменной
+    if (scope == nullptr) {  // first declaration of variable
         curr_scope_.scope[name_] = std::make_shared<AnyNode>(value);
         return;
     }
