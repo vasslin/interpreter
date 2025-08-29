@@ -395,3 +395,23 @@ fizzBuzz(100)
 ## Ограничения
 - C++ версии C++23
 
+
+## Сборка и запуск
+
+1. Клонируйте репозиторий
+
+2. Соберите проект:
+
+```
+cd interpreter
+mkdir build && cd build
+cmake ..
+cmake --build .
+```
+
+3. Запустите проект:
+
+``` 
+cd bin
+./script_interpreter
+```

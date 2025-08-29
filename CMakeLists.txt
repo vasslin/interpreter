@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(
-    itmoscript_interpreter
+    script_interpreter
     LANGUAGES CXX
 )
 
